@@ -9,23 +9,24 @@
         ]
     },
     "rules": {
-        "quotemark": [
-            true,
-            "single"
-        ],
         "indent": [
             true,
             "spaces",
             4
         ],
         "interface-name": false,
-        "ordered-imports": false,
-        "object-literal-sort-keys": false,
         "no-consecutive-blank-lines": false,
-        "trailing-comma": false,
+        "no-shadowed-variable": false,
+        "object-literal-sort-keys": false,
+        "ordered-imports": false,
+        "quotemark": [
+            true,
+            "single"
+        ],
         "semicolon": [
             true,
             "never"
-        ]
+        ],
+        "trailing-comma": false
     }
 }

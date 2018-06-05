@@ -1,6 +1,7 @@
 <template>
     <div class="home">
-
+        123
+        <Input/>
     </div>
 </template>
 

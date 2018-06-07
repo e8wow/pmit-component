@@ -1,7 +1,7 @@
 <template>
     <Modal v-model="isShow" :width="1160" :class="prefixCls" :closable="false" :mask-closable="false">
-        <div :class="`${prefixCls}__header`" slot="header">
-            <nav :class="`${prefixCls}__nav`">
+        <div :class="`${prefixCls}-header`" slot="header">
+            <nav :class="`${prefixCls}-nav`">
                 <ul>
                     <li v-for="tab in tabData">
                         <button
@@ -23,13 +23,13 @@
                     </li>
                 </ul>
             </nav>
-            <div :class="`${prefixCls}__close`" @click="hide">
+            <div :class="`${prefixCls}-close`" @click="hide">
                 <button>
                     <Icon type="close-round" size="20"/>
                 </button>
             </div>
         </div>
-        <div :class="`${prefixCls}__body`">
+        <div :class="`${prefixCls}-body`">
             <component :is="tabActiveKey"></component>
         </div>
     </Modal>
@@ -60,7 +60,7 @@
     })
     export default class PhotoGallery extends Vue {
         // 样式前缀
-        @Prop({type: String, default: 'pmw-photoGallery'})
+        @Prop({type: String, default: 'pmw-photo-gallery'})
         private readonly prefixCls!: string
         // 显示图片库的哪些Tab
         @Prop({
@@ -150,7 +150,7 @@
 <style lang="scss">
     @import "../../../styles/index";
 
-    $prefixCls: 'pmw-photoGallery';
+    $prefixCls: 'pmw-photo-gallery';
     .#{$prefixCls} {
         .ivu-modal-header {
             padding: 0;
@@ -170,7 +170,7 @@
         ul {
             list-style-type: none;
         }
-        &__header {
+        &-header {
             display: flex;
             justify-content: space-between;
             button {
@@ -179,7 +179,7 @@
                 color: #555;
             }
         }
-        &__nav {
+        &-nav {
             display: flex;
             justify-content: space-between;
             flex: 1;
@@ -200,7 +200,7 @@
                 }
             }
         }
-        &__close {
+        &-close {
             margin: 0 30px;
             display: flex;
             align-items: center;
@@ -211,7 +211,7 @@
                 }
             }
         }
-        &__body {
+        &-body {
             height: 580px;
         }
     }

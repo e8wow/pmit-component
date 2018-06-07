@@ -1,12 +1,12 @@
 <template>
     <aside :class="prefixCls">
-        <div :class="`${prefixCls}__header`">
+        <div :class="`${prefixCls}-header`">
             <slot name="header"></slot>
         </div>
-        <div :class="`${prefixCls}__body`">
+        <div :class="`${prefixCls}-body`">
             <slot></slot>
         </div>
-        <div :class="`${prefixCls}__footer`">
+        <div :class="`${prefixCls}-footer`">
             <slot name="footer"></slot>
         </div>
     </aside>
@@ -22,18 +22,18 @@
     @Component({})
     export default class PhotoGalleryAside extends Vue {
         // 样式前缀
-        @Prop({type: String, default: 'pmw-photoGalleryAside'})
+        @Prop({type: String, default: 'pmw-vertical-layout'})
         private readonly prefixCls!: string
     }
 </script>
 
 <style lang="scss">
-    $prefixCls: 'pmw-photoGalleryAside';
+    $prefixCls: 'pmw-vertical-layout';
     .#{$prefixCls} {
         display: flex;
         flex-direction: column;
         position: relative;
-        &__body {
+        &-body {
             flex: 1 1;
         }
     }

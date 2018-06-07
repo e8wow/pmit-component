@@ -1,9 +1,10 @@
 <template>
     <div :class="prefixCls">
-        <div :class="`${prefixCls}__header`">
+        <div :class="`${prefixCls}-header`">
+            <span :class="`${prefixCls}-title`" v-if="!$slots.header">{{title}}</span>
             <slot name="header"></slot>
         </div>
-        <ul :class="`${prefixCls}__body`">
+        <ul :class="`${prefixCls}-body`">
             <slot></slot>
         </ul>
     </div>
@@ -19,13 +20,21 @@
     @Component({})
     export default class PhotoGalleryAside extends Vue {
         // 样式前缀
-        @Prop({type: String, default: 'pmw-photoGalleryAsideList'})
+        @Prop({type: String, default: 'pmw-list'})
         private readonly prefixCls!: string
+        // props title
+        @Prop({type: String})
+        private readonly title!: string
     }
 </script>
 
 <style lang="scss">
-    $prefixCls: 'pmw-photoGalleryAsideList';
+    @import "../../../../styles/index";
+
+    $prefixCls: 'pmw-list';
     .#{$prefixCls} {
+        &-title {
+            color: $gray-color-2;
+        }
     }
 </style>

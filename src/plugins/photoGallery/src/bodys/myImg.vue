@@ -2,8 +2,7 @@
     <div :class="prefixCls">
         <Aside>
             <Input slot="header" icon="search" placeholder="请输入图片名称"/>
-            <list>
-                <div slot="header">按项目</div>
+            <list title="按项目">
                 <list-item>全部图片</list-item>
                 <list-item>当前项目</list-item>
                 <list-item>轻电商</list-item>
@@ -11,7 +10,9 @@
                 <list-item>轻站</list-item>
             </list>
             <list>
-                <div slot="header">按标签</div>
+                <div :class="`${prefixCls}-tag-header`" slot="header">
+                    <span>按标签</span>
+                </div>
                 <list-item>红色</list-item>
                 <list-item>绿色</list-item>
                 <list-item>青色</list-item>
@@ -19,6 +20,7 @@
                 <list-item>蓝色</list-item>
             </list>
         </Aside>
+
     </div>
 </template>
 
@@ -42,7 +44,7 @@
     })
     export default class PhotoGalleryMyImage extends Vue {
         // 样式前缀
-        @Prop({type: String, default: 'pmw-photoGalleryMyImg'})
+        @Prop({type: String, default: 'pmw-photo-gallery-my-img'})
         private readonly prefixCls!: string
     }
 </script>
@@ -50,7 +52,7 @@
 <style lang="scss">
     @import "../../../../styles/index";
 
-    $prefixCls: 'pmw-photoGalleryMyImg';
+    $prefixCls: 'pmw-photo-gallery-my-img';
     .#{$prefixCls} {
         display: flex;
         height: 100%;
@@ -59,6 +61,14 @@
             padding: 20px;
             border-right: 1px solid $gray-color-3;
             box-sizing: border-box;
+        }
+        .pmw-list-header {
+            margin: 15px 0 5px;
+        }
+        &-tag-header {
+            > span {
+                color: $gray-color-2;
+            }
         }
     }
 </style>

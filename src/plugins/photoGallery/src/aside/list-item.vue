@@ -14,13 +14,14 @@
     @Component({})
     export default class PhotoGalleryAside extends Vue {
         // 样式前缀
-        @Prop({type: String, default: 'pmw-photoGalleryAsideListItem'})
+        @Prop({type: String, default: 'pmw-list-item'})
         private readonly prefixCls!: string
     }
 </script>
 
 <style lang="scss">
-    $prefixCls: 'pmw-photoGalleryAsideListItem';
+    $prefixCls: 'pmw-list-item';
     .#{$prefixCls} {
+        line-height: 30px;
     }
 </style>

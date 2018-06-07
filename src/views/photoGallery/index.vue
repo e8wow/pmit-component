@@ -19,7 +19,7 @@
             title: '图片库'
         }
     })
-    export default class PhotoGallery extends Vue {
+    export default class PhotoGalleryDemo extends Vue {
     }
 </script>
 

@@ -7,7 +7,7 @@
 <script lang="ts">
     import {Component, Prop, Vue} from 'vue-property-decorator'
 
-    import photoGallery from '@/plugins/photoGallery/src/main.vue'
+    import photoGallery from '@/plugins/photoGallery/src/index.vue'
 
     @Component({
         components: {photoGallery}

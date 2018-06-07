@@ -9,7 +9,7 @@
     import Vue from 'vue'
     import {Component, Prop} from 'vue-property-decorator'
 
-    import imgCropper from '@/components/ImageCropper/index.vue'
+    import imgCropper from '@/components/Image-cropper/index.vue'
 
     @Component({
         components: {

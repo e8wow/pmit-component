@@ -29,7 +29,7 @@
 </script>
 
 <style lang="scss">
-    @import "../../../../styles/index";
+    @import "../../styles/index";
 
     $prefixCls: 'pmw-list';
     .#{$prefixCls} {

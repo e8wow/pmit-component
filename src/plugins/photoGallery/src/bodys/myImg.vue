@@ -27,9 +27,9 @@
 <script lang="ts">
     import {Component, Prop, Vue} from 'vue-property-decorator'
 
-    import Aside from '../aside/index.vue'
-    import List from '../aside/list.vue'
-    import ListItem from '../aside/list-item.vue'
+    import Aside from '../../../../components/layout/vertical-layout.vue'
+    import List from '../../../../components/list/list.vue'
+    import ListItem from '../../../../components/list/list-item.vue'
 
     /**
      * 图片库我的图片

@@ -13,7 +13,7 @@
         components: {photoGallery}
     })
     export default class ImageCropper extends Vue {
-        @Prop({type: String, default: 'pmw-imageCropper'})
+        @Prop({type: String, default: 'pmw-image-cropper'})
         private readonly prefixCls!: string
 
         @Prop({type: Number, default: 50})
@@ -38,7 +38,7 @@
 </script>
 
 <style lang="scss">
-    $prefixCls: 'pmw-imageCropper';
+    $prefixCls: 'pmw-image-cropper';
     .#{$prefixCls} {
         border: 1px solid #666;
     }

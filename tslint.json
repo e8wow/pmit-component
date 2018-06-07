@@ -9,6 +9,8 @@
         ]
     },
     "rules": {
+        "arrow-parens": false,
+        "arrow-return-shorthand": true,
         "indent": [
             true,
             "spaces",

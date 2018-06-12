@@ -39,6 +39,7 @@
     import {Component, Prop, Vue} from 'vue-property-decorator'
 
     import my_img from './bodys/myImg.vue'
+    import landscaping_pictures from './bodys/landscapingPictures.vue'
 
     // Tab枚举
     enum Tab {
@@ -55,7 +56,8 @@
      */
     @Component({
         components: {
-            my_img
+            my_img,
+            landscaping_pictures
         }
     })
     export default class PhotoGallery extends Vue {

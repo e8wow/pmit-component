@@ -20,12 +20,7 @@ declare module 'vue/types/vue' {
         },
         $Loading: any,
         $Spin: any,
-        $photoGallery: any
-    }
-}
-
-declare module 'vue/types/vue' {
-    interface Vue {
+        $photoGallery: any,
         metaInfo?: MetaInfo | (() => MetaInfo)
     }
 }

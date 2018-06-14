@@ -21,17 +21,15 @@
 
     // 拖动配置接口
     interface DragConfig { // 画布拖动配置
-        canMove: boolean, // 是否按住空格中
-        moveIng: boolean, // 是否移动中
+        isSpaceDownIng: boolean, // 当前是否按住空格键
+        isMouseDownIng: boolean, // 当前是否按住鼠标左键
         info: {
-            offsetX: number, // x轴偏移量
-            offsetY: number, // y轴偏移量
-            startOffsetX: number, // 拖动起始x轴偏移坐标
-            startOffsetY: number, // 拖动起始y轴偏移坐标
-            startX: number, // 拖动起始x轴坐标
-            startY: number, // 拖动起始y轴坐标
+            previousX: number, // 上一次的x轴坐标
+            previousY: number, // 上一次的y轴坐标
             currentX: number, // 当前x轴坐标
             currentY: number // 当前y轴坐标
+            offsetX: number, // x轴偏移量
+            offsetY: number, // y轴偏移量
         }
     }
 
@@ -56,17 +54,15 @@
         private background?: Image // fabric 背景图片 实例
         private centerPoint?: Point // 中心点
         private dragConfig: DragConfig = {
-            canMove: false,
-            moveIng: false,
+            isSpaceDownIng: false,
+            isMouseDownIng: false,
             info: {
-                offsetX: 0,
-                offsetY: 0,
-                startOffsetX: 0,
-                startOffsetY: 0,
-                startX: 0,
-                startY: 0,
+                previousX: 0,
+                previousY: 0,
                 currentX: 0,
-                currentY: 0
+                currentY: 0,
+                offsetX: 0,
+                offsetY: 0
             }
         }
         private zoomConfig: ZoomConfig = {
@@ -77,6 +73,13 @@
 
         private get canvasElement(): HTMLCanvasElement {
             return <HTMLCanvasElement> this.$refs.canvas
+        }
+
+        /**
+         * 是否可拖拽画布进行移动
+         */
+        private get isMoveIng() {
+            return this.dragConfig.isMouseDownIng && this.dragConfig.isSpaceDownIng
         }
 
         private async mounted() {
@@ -139,8 +142,8 @@
         @Watch('dragConfig', {deep: true})
         private dragConfigObserver(dragConfig: DragConfig) {
             this.fabricCanvas._objects.forEach(item => {
-                item.top += dragConfig.info.offsetY
-                item.left += dragConfig.info.offsetX
+                item.top += dragConfig.info.currentY - dragConfig.info.previousY
+                item.left += dragConfig.info.currentX - dragConfig.info.previousX
             })
             this.fabricCanvas.renderAll()
         }
@@ -221,7 +224,7 @@
          */
         private async handlerKeyDown(event: KeyboardEvent) {
             if (event.key === ' ') {
-                this.dragConfig.canMove = true
+                this.dragConfig.isSpaceDownIng = true
                 event.preventDefault()
                 this.fabricCanvas.defaultCursor = '-webkit-grab'
                 this.background.hoverCursor = '-webkit-grab'
@@ -235,7 +238,8 @@
          */
         private handlerKeyUp(event: KeyboardEvent) {
             if (event.key === ' ') {
-                this.dragConfig.canMove = false
+                this.dragConfig.isSpaceDownIng = false
+                this.dragConfig.isMouseDownIng = false //
                 event.preventDefault()
                 this.fabricCanvas.defaultCursor = 'default'
                 this.background.hoverCursor = 'default'
@@ -248,17 +252,18 @@
          * @param event
          */
         private handlerMouseDown(event: any) {
-            if (this.dragConfig.canMove) {
-                this.dragConfig.moveIng = true
-                this.dragConfig.info = {
-                    offsetX: this.dragConfig.info.offsetX,
-                    offsetY: this.dragConfig.info.offsetY,
-                    startOffsetX: this.dragConfig.info.offsetX,
-                    startOffsetY: this.dragConfig.info.offsetY,
-                    startX: event.absolutePointer.x,
-                    startY: event.absolutePointer.y,
-                    currentX: event.absolutePointer.x,
-                    currentY: event.absolutePointer.y
+            if (this.dragConfig.isSpaceDownIng) {
+                this.dragConfig = {
+                    isSpaceDownIng: this.dragConfig.isSpaceDownIng,
+                    isMouseDownIng: true,
+                    info: {
+                        previousX: event.absolutePointer.x,
+                        previousY: event.absolutePointer.y,
+                        currentX: event.absolutePointer.x,
+                        currentY: event.absolutePointer.y,
+                        offsetX: this.dragConfig.info.offsetX,
+                        offsetY: this.dragConfig.info.offsetY
+                    }
                 }
             }
         }
@@ -268,18 +273,15 @@
          * @param event
          */
         private handlerMouseMove(event: any) {
-            if (this.dragConfig.canMove && this.dragConfig.moveIng) {
-                this.dragConfig.info.currentX = event.absolutePointer.x
-                this.dragConfig.info.currentY = event.absolutePointer.y
-                this.dragConfig.info.offsetX =
-                    this.dragConfig.info.startOffsetX
-                    + this.dragConfig.info.currentX
-                    - this.dragConfig.info.startX
-
-                this.dragConfig.info.offsetY =
-                    this.dragConfig.info.startOffsetY
-                    + this.dragConfig.info.currentY
-                    - this.dragConfig.info.startY
+            if (this.isMoveIng) {
+                this.dragConfig.info = {
+                    previousX: this.dragConfig.info.currentX,
+                    previousY: this.dragConfig.info.currentY,
+                    currentX: event.absolutePointer.x,
+                    currentY: event.absolutePointer.y,
+                    offsetX: this.dragConfig.info.offsetX + event.absolutePointer.x - this.dragConfig.info.currentX,
+                    offsetY: this.dragConfig.info.offsetY + event.absolutePointer.y - this.dragConfig.info.currentY
+                }
             }
         }
 
@@ -288,18 +290,18 @@
          * @param event
          */
         private handlerMouseUp(event: any) {
-            if (this.dragConfig.canMove && this.dragConfig.moveIng) {
-                this.dragConfig.moveIng = false
-                // 初始化dragConfig
-                this.dragConfig.info = {
-                    offsetX: this.dragConfig.info.offsetX,
-                    offsetY: this.dragConfig.info.offsetY,
-                    startOffsetX: 0,
-                    startOffsetY: 0,
-                    startX: 0,
-                    startY: 0,
-                    currentX: 0,
-                    currentY: 0,
+            if (this.isMoveIng) {
+                this.dragConfig = {
+                    isSpaceDownIng: this.dragConfig.isSpaceDownIng,
+                    isMouseDownIng: false,
+                    info: {
+                        previousX: 0,
+                        previousY: 0,
+                        currentX: 0,
+                        currentY: 0,
+                        offsetX: this.dragConfig.info.offsetX,
+                        offsetY: this.dragConfig.info.offsetY
+                    }
                 }
             }
         }

@@ -19,6 +19,29 @@
     import {Canvas, Image, Point} from 'fabric/fabric-impl'
     import {Component, Prop, Vue, Watch} from 'vue-property-decorator'
 
+    // 拖动配置接口
+    interface DragConfig { // 画布拖动配置
+        canMove: boolean, // 是否按住空格中
+        moveIng: boolean, // 是否移动中
+        info: {
+            offsetX: number, // x轴偏移量
+            offsetY: number, // y轴偏移量
+            startOffsetX: number, // 拖动起始x轴偏移坐标
+            startOffsetY: number, // 拖动起始y轴偏移坐标
+            startX: number, // 拖动起始x轴坐标
+            startY: number, // 拖动起始y轴坐标
+            currentX: number, // 当前x轴坐标
+            currentY: number // 当前y轴坐标
+        }
+    }
+
+    // 缩放配置接口
+    interface ZoomConfig {
+        zoom: number, // 缩放比例
+        max: number, // 最大缩放比例
+        min: number // 最小缩放比例
+    }
+
     @Component({})
     export default class LandscapingPictures extends Vue {
         // css prefix
@@ -32,20 +55,7 @@
         private fabricCanvas?: Canvas // fabric canvas 实例
         private background?: Image // fabric 背景图片 实例
         private centerPoint?: Point // 中心点
-        private dragConfig: { // 画布拖动配置
-            canMove: boolean, // 是否按住空格中
-            moveIng: boolean, // 是否移动中
-            info: {
-                offsetX: number, // x轴偏移量
-                offsetY: number, // y轴偏移量
-                startOffsetX: number, // 拖动起始x轴偏移坐标
-                startOffsetY: number, // 拖动起始y轴偏移坐标
-                startX: number, // 拖动起始x轴坐标
-                startY: number, // 拖动起始y轴坐标
-                currentX: number, // 当前x轴坐标
-                currentY: number // 当前y轴坐标
-            }
-        } = {
+        private dragConfig: DragConfig = {
             canMove: false,
             moveIng: false,
             info: {
@@ -59,11 +69,7 @@
                 currentY: 0
             }
         }
-        private zoomConfig: { // 缩放配置
-            zoom: number,
-            max: number,
-            min: number
-        } = {
+        private zoomConfig: ZoomConfig = {
             zoom: 1,
             max: 4,
             min: .9
@@ -82,8 +88,8 @@
             // 获取中心点
             const center = this.fabricCanvas.getCenter()
             this.centerPoint = new Fabric.fabric.Point(center.left, center.top)
-            // 填充背景图片
-            await this.watchBackground()
+            // 手动触发一次填充背景图片
+            await this.backgroundObserver()
             // 注册监听事件
             this.registerEventListener()
         }
@@ -101,7 +107,7 @@
          * 监听背景图片的变化。裁剪后、重新选择都会触发
          */
         @Watch('backgroundImage')
-        private async watchBackground() {
+        private async backgroundObserver() {
             const canvas = this.fabricCanvas
             await new Promise(resolve => {
                 // 引入背景图片
@@ -130,6 +136,15 @@
             })
         }
 
+        @Watch('dragConfig', {deep: true})
+        private dragConfigObserver(dragConfig: DragConfig) {
+            this.fabricCanvas._objects.forEach(item => {
+                item.top += dragConfig.info.offsetY
+                item.left += dragConfig.info.offsetX
+            })
+            this.fabricCanvas.renderAll()
+        }
+
         /**
          * 监听缩放参数
          * zoom 缩放比例
@@ -138,11 +153,7 @@
          * @param zoomConfig:{zoom,max,min} zoomConfig
          */
         @Watch('zoomConfig', {deep: true})
-        private watchZoom(zoomConfig: {
-            zoom: number,
-            max: number,
-            min: number
-        }) {
+        private zoomObserver(zoomConfig: ZoomConfig) {
             const {zoom, max, min} = zoomConfig
             // 限制缩放最大值与最小值
             if (zoom > max) {
@@ -196,7 +207,7 @@
                         this.fabricCanvas.width - this.fabricCanvas.width * currentZoom,
                         this.fabricCanvas.height - this.fabricCanvas.height * currentZoom,
                         this.fabricCanvas.width * currentZoom,
-                        this.fabricCanvas.height * currentZoom);
+                        this.fabricCanvas.height * currentZoom)
                 }
                 this.fabricCanvas.renderAll()
             })
@@ -236,7 +247,7 @@
          * 鼠标在画布中按下的事件
          * @param event
          */
-        private handlerMouseDown(event) {
+        private handlerMouseDown(event: any) {
             if (this.dragConfig.canMove) {
                 this.dragConfig.moveIng = true
                 this.dragConfig.info = {
@@ -256,12 +267,19 @@
          * 鼠标在画布中移动的事件
          * @param event
          */
-        private handlerMouseMove(event) {
+        private handlerMouseMove(event: any) {
             if (this.dragConfig.canMove && this.dragConfig.moveIng) {
                 this.dragConfig.info.currentX = event.absolutePointer.x
                 this.dragConfig.info.currentY = event.absolutePointer.y
-                this.dragConfig.info.offsetX = this.dragConfig.info.startOffsetX + this.dragConfig.info.currentX - this.dragConfig.info.startX
-                this.dragConfig.info.offsetY = this.dragConfig.info.startOffsetY + this.dragConfig.info.currentY - this.dragConfig.info.startY
+                this.dragConfig.info.offsetX =
+                    this.dragConfig.info.startOffsetX
+                    + this.dragConfig.info.currentX
+                    - this.dragConfig.info.startX
+
+                this.dragConfig.info.offsetY =
+                    this.dragConfig.info.startOffsetY
+                    + this.dragConfig.info.currentY
+                    - this.dragConfig.info.startY
             }
         }
 
@@ -269,7 +287,7 @@
          * 鼠标在画布中抬起的事件
          * @param event
          */
-        private handlerMouseUp(event) {
+        private handlerMouseUp(event: any) {
             if (this.dragConfig.canMove && this.dragConfig.moveIng) {
                 this.dragConfig.moveIng = false
                 // 初始化dragConfig

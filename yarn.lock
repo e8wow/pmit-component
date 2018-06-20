@@ -3108,9 +3108,9 @@ extsprintf@^1.2.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/extsprintf/-/extsprintf-1.4.0.tgz#e2689f8f356fad62cca65a3a91c5df5f9551692f"
 
-fabric@^2.3.2:
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/fabric/-/fabric-2.3.2.tgz#0083ed32a208c8b386c623b45db10780c6f15e54"
+fabric@^2.3.3:
+  version "2.3.3"
+  resolved "https://registry.yarnpkg.com/fabric/-/fabric-2.3.3.tgz#b82657be361c50640a708c4d53dab551f5ef5396"
   optionalDependencies:
     canvas "1.6.x"
     jsdom "9.x.x"
@@ -7841,7 +7841,7 @@ vm-browserify@0.0.4:
   dependencies:
     indexof "0.0.1"
 
-vue-class-component@^6.0.0, vue-class-component@^6.1.0:
+vue-class-component@^6.1.0, vue-class-component@^6.2.0:
   version "6.2.0"
   resolved "https://registry.yarnpkg.com/vue-class-component/-/vue-class-component-6.2.0.tgz#7adb1daa9a868c75f30f97f33f4f1b94aee62089"
 
@@ -7888,7 +7888,7 @@ vue-parser@^1.1.5:
   dependencies:
     parse5 "^3.0.3"
 
-vue-property-decorator@^6.0.0:
+vue-property-decorator@^6.1.0:
   version "6.1.0"
   resolved "https://registry.yarnpkg.com/vue-property-decorator/-/vue-property-decorator-6.1.0.tgz#ef97bcc1bfe794ec060133ca04a5aca02e808828"
   dependencies:

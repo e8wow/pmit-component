@@ -25,10 +25,7 @@
             true,
             "single"
         ],
-        "semicolon": [
-            true,
-            "never"
-        ],
+        "semicolon": false,
         "trailing-comma": false
     }
 }

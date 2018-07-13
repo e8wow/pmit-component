@@ -7,8 +7,8 @@
              class="transparent-bg-wrap">
             <div :class="`${prefixCls}-zoom-wrap`">
                 <span>{{Math.round(zoomConfig.zoom * 100)}}%</span>
-                <div @click="zoomConfig.zoom+=.1">+</div>
-                <div @click="zoomConfig.zoom-=.1">-</div>
+                <div @click="handleZoom(+.1)">+</div>
+                <div @click="handleZoom(-.1)">-</div>
             </div>
             <canvas ref="canvas"></canvas>
         </div>
@@ -110,6 +110,7 @@ export default class LandscapingPictures extends Vue {
         await this.ob_background()
         // 注册监听事件
         this.registerEventListener()
+        console.log(this.getBackground.getBoundingRect(false, true))
     }
 
     private beforeDestroy() {
@@ -313,7 +314,7 @@ export default class LandscapingPictures extends Vue {
 
     /**
      * document的空格抬起事件
-     * @param event
+     * @param event KeyboardEvent
      */
     private handleKeyUp(event: KeyboardEvent): void {
         if (event.key === ' ') {
@@ -328,7 +329,7 @@ export default class LandscapingPictures extends Vue {
 
     /**
      * 鼠标在画布中按下的事件
-     * @param event
+     * @param options
      */
     private handleMouseDown(options: any): void {
         const e: MouseEvent = options.e
@@ -344,30 +345,43 @@ export default class LandscapingPictures extends Vue {
 
     /**
      * 鼠标在画布中移动的事件
-     * @param event
+     * @param options
      */
     private handleMouseMove(options: any): void {
         const e: MouseEvent = options.e
-        if (this.getIsMoveIng && this.fabricCanvas && this.getBackground) {
+        const canvas = this.fabricCanvas
+        if (this.getIsMoveIng && canvas && this.getBackground) {
+            const bgRect = this.getBackground.getBoundingRect()
+
             const diffX = e.clientX - this.dragConfig.lastPosX
             const diffY = e.clientY - this.dragConfig.lastPosY
             this.dragConfig.lastPosX = e.clientX
             this.dragConfig.lastPosY = e.clientY
             // 更改fabricCanvas的transform
-            const vpt = this.fabricCanvas.viewportTransform
-            vpt![4] += diffX
-            vpt![5] += diffY
-            this.fabricCanvas!.renderAll() // 重新渲染
+            const vpt = canvas.viewportTransform!
+            vpt[4] += diffX
+            vpt[5] += diffY
+            canvas.renderAll() // 重新渲染
         }
     }
 
     /**
      * 鼠标在画布中抬起的事件
-     * @param event
+     * @param options
      */
     private handleMouseUp(options: any): void {
         if (this.getIsMoveIng) {
             this.dragConfig.isMouseDownIng = false
+        }
+    }
+
+    /**
+     * 修改zoom值
+     * @param diff 相差值为正数或负数
+     */
+    private handleZoom(diff: number) {
+        if (diff !== 0) {
+            this.zoomConfig.zoom = Math.round(((this.zoomConfig.zoom + diff) * 100)) / 100
         }
     }
 }

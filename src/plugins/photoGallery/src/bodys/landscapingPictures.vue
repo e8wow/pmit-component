@@ -33,6 +33,7 @@
         zoom: number // 缩放比例
         max: number // 最大缩放比例
         min: number // 最小缩放比例
+        point: Point
     }
 
     @Component({})
@@ -64,7 +65,8 @@
         private zoomConfig: ZoomConfig = {
             zoom: 1,
             max: 2,
-            min: 0.9
+            min: 0.9,
+            point: new Fabric.fabric.Point(0, 0)
         }
 
         /**
@@ -108,12 +110,11 @@
             this.canvas = new Fabric.fabric.Canvas(this.getCanvasElement)
             // 获取中心点
             const center = this.canvas.getCenter()
-            this.centerPoint = new Fabric.fabric.Point(center.left, center.top)
+            this.zoomConfig.point = this.centerPoint = new Fabric.fabric.Point(center.left, center.top)
             // 手动触发一次填充背景图片
             await this.ob_background()
             // 注册监听事件
             this.registerEventListener()
-            console.log(this.getBackground.getBoundingRect(false, true))
         }
 
         private beforeDestroy(): void {
@@ -137,6 +138,7 @@
                 this.canvas.on('mouse:down', this.handleMouseDown)
                 this.canvas.on('mouse:move', this.handleMouseMove)
                 this.canvas.on('mouse:up', this.handleMouseUp)
+                this.canvas.on('mouse:wheel', this.handleScroll)
             }
         }
 
@@ -251,7 +253,7 @@
                 Fabric.fabric.Image.fromURL(
                     this.backgroundImage,
                     (background: Image) => {
-                        this.contents[0] = background
+                        this.$set(this.contents, 0, background)
                         // 处理图片的缩放，使其不超出编辑区域
                         const {width = 0, height = 0} = background
                         const radio = width / height // 获取图片宽高比例
@@ -312,7 +314,7 @@
          * @param zoomConfig:{zoom,max,min} zoomConfig
          */
         @Watch('zoomConfig', {deep: true})
-        private ob_zoom({zoom, max, min}: ZoomConfig): void {
+        private ob_zoom({zoom, max, min, point}: ZoomConfig): void {
             // 限制缩放最大值与最小值
             if (zoom > max) {
                 this.zoomConfig.zoom = max
@@ -321,9 +323,9 @@
             } else {
                 const canvas = this.canvas
                 // 执行体,代码都写这,
-                if (this.canvas && this.centerPoint) {
-                    this.canvas.zoomToPoint(this.centerPoint, zoom)
-                    this.canvas!.clipTo = ctx => {
+                if (canvas && this.getBackground) {
+                    canvas.zoomToPoint(point, zoom)
+                    canvas!.clipTo = ctx => {
                         const bgRect = this.getBackground.getBoundingRect(false, true) // 获取背景图片的矩阵
                         ctx.rect(
                             bgRect.left!,
@@ -343,6 +345,7 @@
          * @param event
          */
         private handleKeyDown(event: KeyboardEvent): void {
+            console.log(event.key === ' ', this.canvas, this.getBackground)
             if (event.key === ' ' && this.canvas && this.getBackground) {
                 if (this.canvas && this.getBackground) {
                     this.dragConfig.isSpaceDownIng = true
@@ -421,11 +424,24 @@
         }
 
         /**
+         * 鼠标在画布中滚动的事件
+         * @param options
+         */
+        private handleScroll(options: any): void {
+            const delta = options.e.deltaY
+            options.e.preventDefault()
+            options.e.stopPropagation()
+            this.zoomConfig.point = new Fabric.fabric.Point(options.e.offsetX, options.e.offsetY)
+            this.zoomConfig.zoom += delta / 200
+        }
+
+        /**
          * 修改zoom值
          * @param diff 相差值为正数或负数
          */
         private handleZoom(diff: number): void {
             if (diff !== 0) {
+                this.zoomConfig.point = this.centerPoint
                 this.zoomConfig.zoom = Math.round(((this.zoomConfig.zoom + diff) * 100)) / 100
             }
         }

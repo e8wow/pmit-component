@@ -44,7 +44,7 @@
         // TODO 默认图片等组件完成后需要去除default属性值
         @Prop({
             type: String,
-            default: require('../../../../assets/images/test2.jpg')
+            default: require('../../../../assets/images/test3.jpg')
         })
         private readonly backgroundImage?: string
 
@@ -380,14 +380,12 @@
                 this.width > bgRect.width ? maxLeftValue = diffWidth : minLeftValue = diffWidth
                 this.height > bgRect.height ? maxTopValue = diffHeight : minTopValue = diffHeight
 
-                // 为了防止坐标位移与transform位移产生冲突bug，这里把坐标都设为0，只用transform进行位移
-                this.getBackground.left = 0
-                this.getBackground.top = 0
-
                 // X轴边界碰撞检测
                 if (futureX >= maxLeftValue && diffX > 0) {
+                    this.getBackground.left = 0
                     vpt[4] = maxLeftValue
                 } else if (futureX < minLeftValue && diffX < 0) {
+                    this.getBackground.left = 0
                     vpt[4] = minLeftValue
                 } else {
                     vpt[4] += diffX
@@ -395,8 +393,10 @@
 
                 // Y轴边界碰撞检测
                 if (futureY >= maxTopValue && diffY > 0) {
+                    this.getBackground.top = 0
                     vpt[5] = maxTopValue
                 } else if (futureY < minTopValue && diffY < 0) {
+                    this.getBackground.top = 0
                     vpt[5] = minTopValue
                 } else {
                     vpt[5] += diffY

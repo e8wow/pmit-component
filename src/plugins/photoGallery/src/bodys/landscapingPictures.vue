@@ -345,7 +345,6 @@
          * @param event
          */
         private handleKeyDown(event: KeyboardEvent): void {
-            console.log(event.key === ' ', this.canvas, this.getBackground)
             if (event.key === ' ' && this.canvas && this.getBackground) {
                 if (this.canvas && this.getBackground) {
                     this.dragConfig.isSpaceDownIng = true

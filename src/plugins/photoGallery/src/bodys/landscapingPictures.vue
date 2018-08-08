@@ -63,7 +63,7 @@
         }
         private zoomConfig: ZoomConfig = {
             zoom: 1,
-            max: 4,
+            max: 2,
             min: 0.9
         }
 
@@ -77,7 +77,7 @@
         /**
          * 获取背景图片的宽高比例
          */
-        private get getBackgroundRatio() {
+        private get getBackgroundRatio(): number {
             const background: Image = this.getBackground as Image
             if (background) {
                 return background!.width / background!.height
@@ -100,7 +100,7 @@
             return this.dragConfig.isMouseDownIng && this.dragConfig.isSpaceDownIng
         }
 
-        private async mounted() {
+        private async mounted(): void {
             // 调整画布大小
             this.width = this.getCanvasElement.width = this.getCanvasElement.clientWidth
             this.height = this.getCanvasElement.height = this.getCanvasElement.clientHeight
@@ -116,7 +116,7 @@
             console.log(this.getBackground.getBoundingRect(false, true))
         }
 
-        private beforeDestroy() {
+        private beforeDestroy(): void {
             // 移除监听事件
             document.removeEventListener('keydown', this.handleKeyDown)
             document.removeEventListener('keyup', this.handleKeyUp)
@@ -130,7 +130,7 @@
         /**
          * 注册事件监听
          */
-        private registerEventListener() {
+        private registerEventListener(): void {
             document.addEventListener('keydown', this.handleKeyDown)
             document.addEventListener('keyup', this.handleKeyUp)
             if (this.canvas) {
@@ -180,6 +180,41 @@
         }
 
         /**
+         * 检测边界碰撞，并归位
+         */
+        private checkBoundary() {
+            // 获取背景的矩阵
+            const bgRect = this.getBackground.getBoundingRect(false, true)
+            const vpt = this.canvas.viewportTransform!
+
+            // 获取边界值
+            let maxTopValue = 0, minTopValue = 0
+            let maxLeftValue = 0, minLeftValue = 0
+            const diffHeight = this.height - bgRect.height
+            const diffWidth = this.width - bgRect.width
+            this.height > bgRect.height ? maxTopValue = diffHeight : minTopValue = diffHeight
+            this.width > bgRect.width ? maxLeftValue = diffWidth : minLeftValue = diffWidth
+
+            // X轴边界碰撞检测
+            if (bgRect.left >= maxLeftValue) {
+                this.getBackground.left = 0
+                vpt[4] = maxLeftValue
+            } else if (bgRect.left < minLeftValue) {
+                this.getBackground.left = 0
+                vpt[4] = minLeftValue
+            }
+
+            // Y轴边界碰撞检测
+            if (bgRect.top >= maxTopValue) {
+                this.getBackground.top = 0
+                vpt[5] = maxTopValue
+            } else if (bgRect.top < minTopValue) {
+                this.getBackground.top = 0
+                vpt[5] = minTopValue
+            }
+        }
+
+        /**
          * 设置所有元素的cursor
          * @param cursor:string 将所有元素的hoverCursor设置为此值
          */
@@ -196,7 +231,7 @@
          * 监听背景图片的变化。裁剪后、重新选择都会触发
          */
         @Watch('backgroundImage')
-        private async ob_background() {
+        private async ob_background(): void {
             await new Promise((resolve, reject) => {
                 if (!this.canvas) {
                     reject({
@@ -284,6 +319,7 @@
             } else if (zoom < min) {
                 this.zoomConfig.zoom = min
             } else {
+                const canvas = this.canvas
                 // 执行体,代码都写这,
                 if (this.canvas && this.centerPoint) {
                     this.canvas.zoomToPoint(this.centerPoint, zoom)
@@ -297,6 +333,7 @@
                         )
                     }
                     this.ob_dragConfig(this.dragConfig)
+                    this.checkBoundary()
                 }
             }
         }
@@ -356,51 +393,18 @@
             if (this.getIsMoveIng && canvas && this.getBackground) {
                 // 获取canvas的transform对象
                 const vpt = canvas.viewportTransform!
-
-                // 获取背景的矩阵
-                const bgRect = this.getBackground.getBoundingRect(false, true)
-
                 // 计算与上一次鼠标坐标相差值
                 const diffX = e.clientX - this.dragConfig.lastPosX
                 const diffY = e.clientY - this.dragConfig.lastPosY
-
-                // 计算将来的XY轴坐标
-                let futureX = bgRect.left + diffX
-                let futureY = bgRect.top + diffY
 
                 // 记录当前坐标
                 this.dragConfig.lastPosX = e.clientX
                 this.dragConfig.lastPosY = e.clientY
 
-                // 获取边界值
-                let maxTopValue = 0, minTopValue = 0
-                let maxLeftValue = 0, minLeftValue = 0
-                const diffHeight = this.height - bgRect.height
-                const diffWidth = this.width - bgRect.width
-                this.width > bgRect.width ? maxLeftValue = diffWidth : minLeftValue = diffWidth
-                this.height > bgRect.height ? maxTopValue = diffHeight : minTopValue = diffHeight
+                vpt[4] += diffX
+                vpt[5] += diffY
 
-                // X轴边界碰撞检测
-                if (futureX >= maxLeftValue && diffX > 0) {
-                    this.getBackground.left = 0
-                    vpt[4] = maxLeftValue
-                } else if (futureX < minLeftValue && diffX < 0) {
-                    this.getBackground.left = 0
-                    vpt[4] = minLeftValue
-                } else {
-                    vpt[4] += diffX
-                }
-
-                // Y轴边界碰撞检测
-                if (futureY >= maxTopValue && diffY > 0) {
-                    this.getBackground.top = 0
-                    vpt[5] = maxTopValue
-                } else if (futureY < minTopValue && diffY < 0) {
-                    this.getBackground.top = 0
-                    vpt[5] = minTopValue
-                } else {
-                    vpt[5] += diffY
-                }
+                this.checkBoundary()
                 // 重新渲染
                 canvas.renderAll()
             }
@@ -420,7 +424,7 @@
          * 修改zoom值
          * @param diff 相差值为正数或负数
          */
-        private handleZoom(diff: number) {
+        private handleZoom(diff: number): void {
             if (diff !== 0) {
                 this.zoomConfig.zoom = Math.round(((this.zoomConfig.zoom + diff) * 100)) / 100
             }

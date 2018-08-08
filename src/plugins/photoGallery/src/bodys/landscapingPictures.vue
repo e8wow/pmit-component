@@ -16,226 +16,279 @@
 </template>
 
 <script lang="ts">
-import Fabric from 'fabric'
-import { Canvas, Image, Point, Object as FabricObject } from 'fabric/fabric-impl'
-import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
+    import Fabric from 'fabric'
+    import {Canvas, Image, Point, Object as FabricObject} from 'fabric/fabric-impl'
+    import {Component, Prop, Vue, Watch} from 'vue-property-decorator'
 
-// 拖动配置接口
-interface DragConfig {
-    isSpaceDownIng: boolean // 当前是否按住空格键
-    isMouseDownIng: boolean // 当前是否按住鼠标左键
-    lastPosX: number // 最后一次鼠标X轴坐标
-    lastPosY: number // 最后一次鼠标Y轴坐标
-}
-
-// 缩放配置接口
-interface ZoomConfig {
-    zoom: number // 缩放比例
-    max: number // 最大缩放比例
-    min: number // 最小缩放比例
-}
-
-@Component({})
-export default class LandscapingPictures extends Vue {
-    // css prefix
-    @Prop({ type: String, default: 'pmw-photo-gallery-landscaping-pictures' })
-    private readonly prefixCls?: string
-
-    // TODO 默认图片等组件完成后需要去除default属性值
-    @Prop({
-        type: String,
-        default: require('../../../../assets/images/test3.jpg')
-    })
-    private readonly backgroundImage?: string
-
-    private fabricCanvas?: Canvas // fabric canvas 实例
-    private background?: Image // fabric 背景图片 实例
-    private contents: FabricObject[] = [] // 内容
-    private centerPoint?: Point // 中心点
-    private dragConfig: DragConfig = {
-        isSpaceDownIng: false,
-        isMouseDownIng: false,
-        lastPosX: 0,
-        lastPosY: 0
-    }
-    private zoomConfig: ZoomConfig = {
-        zoom: 1,
-        max: 4,
-        min: 0.9
+    // 拖动配置接口
+    interface DragConfig {
+        isSpaceDownIng: boolean // 当前是否按住空格键
+        isMouseDownIng: boolean // 当前是否按住鼠标左键
+        lastPosX: number // 最后一次鼠标X轴坐标
+        lastPosY: number // 最后一次鼠标Y轴坐标
     }
 
-    /**
-     * 获取背景
-     */
-    private get getBackground(): Image {
-        return this.contents[0] as Image
+    // 缩放配置接口
+    interface ZoomConfig {
+        zoom: number // 缩放比例
+        max: number // 最大缩放比例
+        min: number // 最小缩放比例
     }
 
-    /**
-     * 获取背景图片的宽高比例
-     */
-    private get getBackgroundRatio() {
-        const background: Image = this.getBackground as Image
-        if (background) {
-            return background.width! / background.height!
-        } else {
-            return 1
-        }
-    }
+    @Component({})
+    export default class LandscapingPictures extends Vue {
+        // css prefix
+        @Prop({type: String, default: 'pmw-photo-gallery-landscaping-pictures'})
+        private readonly prefixCls?: string
 
-    /**
-     * 获取canvas元素
-     */
-    private get getCanvasElement(): HTMLCanvasElement {
-        return this.$refs.canvas as HTMLCanvasElement
-    }
-
-    /**
-     * 是否可拖拽画布进行移动
-     */
-    private get getIsMoveIng(): boolean {
-        return this.dragConfig.isMouseDownIng && this.dragConfig.isSpaceDownIng
-    }
-
-    private async mounted() {
-        // 调整画布大小
-        this.getCanvasElement.width = this.getCanvasElement.clientWidth
-        this.getCanvasElement.height = this.getCanvasElement.clientHeight
-        // 实例化fabricCanvas
-        this.fabricCanvas = new Fabric.fabric.Canvas(this.getCanvasElement)
-        // 获取中心点
-        const center = this.fabricCanvas.getCenter()
-        this.centerPoint = new Fabric.fabric.Point(center.left, center.top)
-        // 手动触发一次填充背景图片
-        await this.ob_background()
-        // 注册监听事件
-        this.registerEventListener()
-        console.log(this.getBackground.getBoundingRect(false, true))
-    }
-
-    private beforeDestroy() {
-        // 移除监听事件
-        document.removeEventListener('keydown', this.handleKeyDown)
-        document.removeEventListener('keyup', this.handleKeyUp)
-        if (this.fabricCanvas) {
-            this.fabricCanvas.off('mouse:down', this.handleMouseDown)
-            this.fabricCanvas.off('mouse:move', this.handleMouseMove)
-            this.fabricCanvas.off('mouse:up', this.handleMouseUp)
-        }
-    }
-
-    /**
-     * 注册事件监听
-     */
-    private registerEventListener() {
-        document.addEventListener('keydown', this.handleKeyDown)
-        document.addEventListener('keyup', this.handleKeyUp)
-        if (this.fabricCanvas) {
-            this.fabricCanvas.on('mouse:down', this.handleMouseDown)
-            this.fabricCanvas.on('mouse:move', this.handleMouseMove)
-            this.fabricCanvas.on('mouse:up', this.handleMouseUp)
-        }
-    }
-
-    /**
-     * 添加元素
-     * object: FabricObject 添加的对象
-     */
-    private appendObject(object: FabricObject): FabricObject | void {
-        if (this.fabricCanvas) {
-            this.contents.push(object)
-            this.fabricCanvas.add(object)
-            return object
-        }
-    }
-
-    /**
-     * 生成Base64图片
-     * @returns {Promise<string>}
-     */
-    private async getBase64(): Promise<string> {
-        if (this.fabricCanvas && this.getBackground) {
-            const currentZoom = this.zoomConfig.zoom // 当前的缩放比例
-            this.zoomConfig.zoom = 1 // 将当前的缩放比例恢复默认值
-            let result = '' // 用来存放Base64图片
-            await this.$nextTick(() => {
-                const backgroundRect = this.getBackground!.getBoundingRect(false, true)
-                // 将裁剪后返回的Base64字符串赋值给result变量
-                result = this.fabricCanvas!.toDataURL({
-                    left: backgroundRect.left,
-                    top: backgroundRect.top,
-                    width: backgroundRect.width,
-                    height: backgroundRect.height
-                })
-                this.fabricCanvas!.renderAll()
-            })
-            this.zoomConfig.zoom = currentZoom
-            return result
-        } else {
-            return ''
-        }
-    }
-
-    /**
-     * 设置所有元素的cursor
-     * @param cursor:string 将所有元素的hoverCursor设置为此值
-     */
-    private setCursor(cursor: string): void {
-        if (this.fabricCanvas) {
-            this.fabricCanvas.defaultCursor = this.fabricCanvas.hoverCursor = cursor
-        }
-        this.contents.forEach(item => {
-            item.hoverCursor = cursor
+        // TODO 默认图片等组件完成后需要去除default属性值
+        @Prop({
+            type: String,
+            default: require('../../../../assets/images/test2.jpg')
         })
-    }
+        private readonly backgroundImage?: string
 
-    /**
-     * 监听背景图片的变化。裁剪后、重新选择都会触发
-     */
-    @Watch('backgroundImage')
-    private async ob_background() {
-        await new Promise((resolve, reject) => {
-            if (!this.fabricCanvas) {
-                reject({
-                    code: 100,
-                    msg: '请先初始化fabric Canvas.'
-                })
-                return
+        private canvas?: Canvas // fabric canvas 实例
+        private width: Number = 0 // canvas宽度
+        private height: Number = 0 // canvas高度
+
+        private background?: Image // fabric 背景图片 实例
+        private contents: FabricObject[] = [] // 内容
+        private centerPoint?: Point // 中心点
+        private dragConfig: DragConfig = {
+            isSpaceDownIng: false,
+            isMouseDownIng: false,
+            lastPosX: 0,
+            lastPosY: 0
+        }
+        private zoomConfig: ZoomConfig = {
+            zoom: 1,
+            max: 4,
+            min: 0.9
+        }
+
+        /**
+         * 获取背景
+         */
+        private get getBackground(): Image {
+            return this.contents[0] as Image
+        }
+
+        /**
+         * 获取背景图片的宽高比例
+         */
+        private get getBackgroundRatio() {
+            const background: Image = this.getBackground as Image
+            if (background) {
+                return background!.width / background!.height
+            } else {
+                return 1
             }
-            if (!this.backgroundImage) {
-                reject({
-                    code: 101,
-                    msg: '请传入正确的图片路径地址.'
-                })
-                return
+        }
+
+        /**
+         * 获取canvas元素
+         */
+        private get getCanvasElement(): HTMLCanvasElement {
+            return this.$refs.canvas as HTMLCanvasElement
+        }
+
+        /**
+         * 是否可拖拽画布进行移动
+         */
+        private get getIsMoveIng(): boolean {
+            return this.dragConfig.isMouseDownIng && this.dragConfig.isSpaceDownIng
+        }
+
+        private async mounted() {
+            // 调整画布大小
+            this.width = this.getCanvasElement.width = this.getCanvasElement.clientWidth
+            this.height = this.getCanvasElement.height = this.getCanvasElement.clientHeight
+            // 实例化canvas
+            this.canvas = new Fabric.fabric.Canvas(this.getCanvasElement)
+            // 获取中心点
+            const center = this.canvas.getCenter()
+            this.centerPoint = new Fabric.fabric.Point(center.left, center.top)
+            // 手动触发一次填充背景图片
+            await this.ob_background()
+            // 注册监听事件
+            this.registerEventListener()
+            console.log(this.getBackground.getBoundingRect(false, true))
+        }
+
+        private beforeDestroy() {
+            // 移除监听事件
+            document.removeEventListener('keydown', this.handleKeyDown)
+            document.removeEventListener('keyup', this.handleKeyUp)
+            if (this.canvas) {
+                this.canvas.off('mouse:down', this.handleMouseDown)
+                this.canvas.off('mouse:move', this.handleMouseMove)
+                this.canvas.off('mouse:up', this.handleMouseUp)
             }
-            // 引入背景图片
-            Fabric.fabric.Image.fromURL(
-                this.backgroundImage,
-                (background: Image) => {
-                    this.contents[0] = background
-                    // 处理图片的缩放，使其不超出编辑区域
-                    const { width = 0, height = 0 } = background
-                    const radio = width / height // 获取图片宽高比例
-                    let scale = 1 // 背景图片缩放比例
-                    if (radio > 1 && width > this.fabricCanvas!.width) {
-                        // 图片比例为宽大于高，并且超出画布宽度
-                        scale = this.fabricCanvas!.width / background.width!
-                    } else if (radio < 1 && height > this.fabricCanvas!.height) {
-                        // 图片比例为高大于宽，并且超出画布高度
-                        scale = this.fabricCanvas!.height / background.height!
+        }
+
+        /**
+         * 注册事件监听
+         */
+        private registerEventListener() {
+            document.addEventListener('keydown', this.handleKeyDown)
+            document.addEventListener('keyup', this.handleKeyUp)
+            if (this.canvas) {
+                this.canvas.on('mouse:down', this.handleMouseDown)
+                this.canvas.on('mouse:move', this.handleMouseMove)
+                this.canvas.on('mouse:up', this.handleMouseUp)
+            }
+        }
+
+        /**
+         * 添加元素
+         * object: FabricObject 添加的对象
+         */
+        private appendObject(object: FabricObject): FabricObject | void {
+            if (this.canvas) {
+                this.contents.push(object)
+                this.canvas.add(object)
+                return object
+            }
+        }
+
+        /**
+         * 生成Base64图片
+         * @returns {Promise<string>}
+         */
+        private async getBase64(): Promise<string> {
+            if (this.canvas && this.getBackground) {
+                const currentZoom = this.zoomConfig.zoom // 当前的缩放比例
+                this.zoomConfig.zoom = 1 // 将当前的缩放比例恢复默认值
+                let result = '' // 用来存放Base64图片
+                await this.$nextTick(() => {
+                    const backgroundRect = this.getBackground!.getBoundingRect(false, true)
+                    // 将裁剪后返回的Base64字符串赋值给result变量
+                    result = this.canvas!.toDataURL({
+                        left: backgroundRect.left,
+                        top: backgroundRect.top,
+                        width: backgroundRect.width,
+                        height: backgroundRect.height
+                    })
+                    this.canvas!.renderAll()
+                })
+                this.zoomConfig.zoom = currentZoom
+                return result
+            } else {
+                return ''
+            }
+        }
+
+        /**
+         * 设置所有元素的cursor
+         * @param cursor:string 将所有元素的hoverCursor设置为此值
+         */
+        private setCursor(cursor: string): void {
+            if (this.canvas) {
+                this.canvas.defaultCursor = this.canvas.hoverCursor = cursor
+            }
+            this.contents.forEach(item => {
+                item.hoverCursor = cursor
+            })
+        }
+
+        /**
+         * 监听背景图片的变化。裁剪后、重新选择都会触发
+         */
+        @Watch('backgroundImage')
+        private async ob_background() {
+            await new Promise((resolve, reject) => {
+                if (!this.canvas) {
+                    reject({
+                        code: 100,
+                        msg: '请先初始化fabric Canvas.'
+                    })
+                    return
+                }
+                if (!this.backgroundImage) {
+                    reject({
+                        code: 101,
+                        msg: '请传入正确的图片路径地址.'
+                    })
+                    return
+                }
+                // 引入背景图片
+                Fabric.fabric.Image.fromURL(
+                    this.backgroundImage,
+                    (background: Image) => {
+                        this.contents[0] = background
+                        // 处理图片的缩放，使其不超出编辑区域
+                        const {width = 0, height = 0} = background
+                        const radio = width / height // 获取图片宽高比例
+                        let scale = 1 // 背景图片缩放比例
+                        if (radio > 1 && width > this.width) {
+                            // 图片比例为宽大于高，并且超出画布宽度
+                            scale = this.width / background.width!
+                        } else if (radio < 1 && height > this.height) {
+                            // 图片比例为高大于宽，并且超出画布高度
+                            scale = this.height / background.height!
+                        }
+                        background.scale(scale) // 设置背景图片缩放比ß
+
+                        background.hasControls = false // 将缩放旋转等控制点取消
+                        background.hasBorders = false // 去掉边框
+                        background.selectable = false // 不能选中
+                        background.hoverCursor = 'default' // 鼠标移入样式改为默认
+
+                        this.canvas!.add(background) // 将背景加入画布中
+                        this.canvas!.centerObject(background)
+                        this.canvas!.clipTo = ctx => {
+                            const bgRect = background.getBoundingRect(false, true)
+                            ctx.rect(
+                                bgRect.left!,
+                                bgRect.top!,
+                                bgRect.width!,
+                                bgRect.height!
+                            )
+                        }
+                        resolve()
                     }
-                    background.scale(scale) // 设置背景图片缩放比ß
+                )
+            })
+        }
 
-                    background.hasControls = false // 将缩放旋转等控制点取消
-                    background.hasBorders = false // 去掉边框
-                    background.selectable = false // 不能选中
-                    background.hoverCursor = 'default' // 鼠标移入样式改为默认
+        /**
+         * 拖动背景的观察者
+         * @param dragConfig:DragConfig
+         */
+        @Watch('dragConfig', {deep: true})
+        private ob_dragConfig(dragConfig: DragConfig): void {
+            // 设置鼠标样式
+            if (dragConfig.isSpaceDownIng) { // TODO 此处以后可移出这里，为isSpaceDownIng和isMouseDownIng增加另外的监听回调
+                this.setCursor('-webkit-grab')
+                if (dragConfig.isMouseDownIng) {
+                    this.setCursor('-webkit-grabbing')
+                }
+            } else {
+                this.setCursor('default')
+            }
+        }
 
-                    this.fabricCanvas!.add(background) // 将背景加入画布中
-                    this.fabricCanvas!.centerObject(background)
-                    this.fabricCanvas!.clipTo = ctx => {
-                        const bgRect = background.getBoundingRect(false, true)
+        /**
+         * 监听缩放参数
+         * zoom 缩放比例
+         * max 缩放最大值
+         * min 缩放最小
+         * @param zoomConfig:{zoom,max,min} zoomConfig
+         */
+        @Watch('zoomConfig', {deep: true})
+        private ob_zoom({zoom, max, min}: ZoomConfig): void {
+            // 限制缩放最大值与最小值
+            if (zoom > max) {
+                this.zoomConfig.zoom = max
+            } else if (zoom < min) {
+                this.zoomConfig.zoom = min
+            } else {
+                // 执行体,代码都写这,
+                if (this.canvas && this.centerPoint) {
+                    this.canvas.zoomToPoint(this.centerPoint, zoom)
+                    this.canvas!.clipTo = ctx => {
+                        const bgRect = this.getBackground.getBoundingRect(false, true) // 获取背景图片的矩阵
                         ctx.rect(
                             bgRect.left!,
                             bgRect.top!,
@@ -243,183 +296,171 @@ export default class LandscapingPictures extends Vue {
                             bgRect.height!
                         )
                     }
-                    resolve()
+                    this.ob_dragConfig(this.dragConfig)
                 }
-            )
-        })
-    }
-
-    /**
-     * 拖动背景的观察者
-     * @param dragConfig:DragConfig
-     */
-    @Watch('dragConfig', { deep: true })
-    private ob_dragConfig(dragConfig: DragConfig): void {
-        // 设置鼠标样式
-        if (dragConfig.isSpaceDownIng) { // TODO 此处以后可移出这里，为isSpaceDownIng和isMouseDownIng增加另外的监听回调
-            this.setCursor('-webkit-grab')
-            if (dragConfig.isMouseDownIng) {
-                this.setCursor('-webkit-grabbing')
             }
-        } else {
-            this.setCursor('default')
         }
-    }
 
-    /**
-     * 监听缩放参数
-     * zoom 缩放比例
-     * max 缩放最大值
-     * min 缩放最小
-     * @param zoomConfig:{zoom,max,min} zoomConfig
-     */
-    @Watch('zoomConfig', { deep: true })
-    private ob_zoom({ zoom, max, min }: ZoomConfig): void {
-        // 限制缩放最大值与最小值
-        if (zoom > max) {
-            this.zoomConfig.zoom = max
-        } else if (zoom < min) {
-            this.zoomConfig.zoom = min
-        } else {
-            // 执行体,代码都写这,
-            if (this.fabricCanvas && this.centerPoint) {
-                this.fabricCanvas.zoomToPoint(this.centerPoint, zoom)
-                this.fabricCanvas!.clipTo = ctx => {
-                    const bgRect = this.getBackground.getBoundingRect(false, true) // 获取背景图片的矩阵
-                    ctx.rect(
-                        bgRect.left!,
-                        bgRect.top!,
-                        bgRect.width!,
-                        bgRect.height!
-                    )
+        /**
+         * document的空格按下事件
+         * @param event
+         */
+        private handleKeyDown(event: KeyboardEvent): void {
+            if (event.key === ' ' && this.canvas && this.getBackground) {
+                if (this.canvas && this.getBackground) {
+                    this.dragConfig.isSpaceDownIng = true
+                    this.canvas.selection = false
+                    event.preventDefault()
                 }
-                this.ob_dragConfig(this.dragConfig)
+            }
+        }
+
+        /**
+         * document的空格抬起事件
+         * @param event KeyboardEvent
+         */
+        private handleKeyUp(event: KeyboardEvent): void {
+            if (event.key === ' ') {
+                if (this.canvas && this.getBackground) {
+                    this.dragConfig.isSpaceDownIng = false
+                    this.dragConfig.isMouseDownIng = false //
+                    this.canvas.selection = true
+                    event.preventDefault()
+                }
+            }
+        }
+
+        /**
+         * 鼠标在画布中按下的事件
+         * @param options
+         */
+        private handleMouseDown(options: any): void {
+            const e: MouseEvent = options.e
+            if (this.dragConfig.isSpaceDownIng) {
+                this.dragConfig = {
+                    isSpaceDownIng: this.dragConfig.isSpaceDownIng,
+                    isMouseDownIng: true,
+                    lastPosX: e.clientX,
+                    lastPosY: e.clientY
+                }
+            }
+        }
+
+        /**
+         * 鼠标在画布中移动的事件
+         * @param options
+         */
+        private handleMouseMove(options: any): void {
+            const e: MouseEvent = options.e
+            const canvas = this.canvas
+            if (this.getIsMoveIng && canvas && this.getBackground) {
+                // 获取canvas的transform对象
+                const vpt = canvas.viewportTransform!
+
+                // 获取背景的矩阵
+                const bgRect = this.getBackground.getBoundingRect(false, true)
+
+                // 计算与上一次鼠标坐标相差值
+                const diffX = e.clientX - this.dragConfig.lastPosX
+                const diffY = e.clientY - this.dragConfig.lastPosY
+
+                // 计算将来的XY轴坐标
+                let futureX = bgRect.left + diffX
+                let futureY = bgRect.top + diffY
+
+                // 记录当前坐标
+                this.dragConfig.lastPosX = e.clientX
+                this.dragConfig.lastPosY = e.clientY
+
+                // 获取边界值
+                let maxTopValue = 0, minTopValue = 0
+                let maxLeftValue = 0, minLeftValue = 0
+                const diffHeight = this.height - bgRect.height
+                const diffWidth = this.width - bgRect.width
+                this.width > bgRect.width ? maxLeftValue = diffWidth : minLeftValue = diffWidth
+                this.height > bgRect.height ? maxTopValue = diffHeight : minTopValue = diffHeight
+
+                // 为了防止坐标位移与transform位移产生冲突bug，这里把坐标都设为0，只用transform进行位移
+                this.getBackground.left = 0
+                this.getBackground.top = 0
+
+                // X轴边界碰撞检测
+                if (futureX >= maxLeftValue && diffX > 0) {
+                    vpt[4] = maxLeftValue
+                } else if (futureX < minLeftValue && diffX < 0) {
+                    vpt[4] = minLeftValue
+                } else {
+                    vpt[4] += diffX
+                }
+
+                // Y轴边界碰撞检测
+                if (futureY >= maxTopValue && diffY > 0) {
+                    vpt[5] = maxTopValue
+                } else if (futureY < minTopValue && diffY < 0) {
+                    vpt[5] = minTopValue
+                } else {
+                    vpt[5] += diffY
+                }
+                // 重新渲染
+                canvas.renderAll()
+            }
+        }
+
+        /**
+         * 鼠标在画布中抬起的事件
+         * @param options
+         */
+        private handleMouseUp(options: any): void {
+            if (this.getIsMoveIng) {
+                this.dragConfig.isMouseDownIng = false
+            }
+        }
+
+        /**
+         * 修改zoom值
+         * @param diff 相差值为正数或负数
+         */
+        private handleZoom(diff: number) {
+            if (diff !== 0) {
+                this.zoomConfig.zoom = Math.round(((this.zoomConfig.zoom + diff) * 100)) / 100
             }
         }
     }
-
-    /**
-     * document的空格按下事件
-     * @param event
-     */
-    private handleKeyDown(event: KeyboardEvent): void {
-        if (event.key === ' ' && this.fabricCanvas && this.getBackground) {
-            if (this.fabricCanvas && this.getBackground) {
-                this.dragConfig.isSpaceDownIng = true
-                this.fabricCanvas.selection = false
-                event.preventDefault()
-            }
-        }
-    }
-
-    /**
-     * document的空格抬起事件
-     * @param event KeyboardEvent
-     */
-    private handleKeyUp(event: KeyboardEvent): void {
-        if (event.key === ' ') {
-            if (this.fabricCanvas && this.getBackground) {
-                this.dragConfig.isSpaceDownIng = false
-                this.dragConfig.isMouseDownIng = false //
-                this.fabricCanvas.selection = true
-                event.preventDefault()
-            }
-        }
-    }
-
-    /**
-     * 鼠标在画布中按下的事件
-     * @param options
-     */
-    private handleMouseDown(options: any): void {
-        const e: MouseEvent = options.e
-        if (this.dragConfig.isSpaceDownIng) {
-            this.dragConfig = {
-                isSpaceDownIng: this.dragConfig.isSpaceDownIng,
-                isMouseDownIng: true,
-                lastPosX: e.clientX,
-                lastPosY: e.clientY
-            }
-        }
-    }
-
-    /**
-     * 鼠标在画布中移动的事件
-     * @param options
-     */
-    private handleMouseMove(options: any): void {
-        const e: MouseEvent = options.e
-        const canvas = this.fabricCanvas
-        if (this.getIsMoveIng && canvas && this.getBackground) {
-            const bgRect = this.getBackground.getBoundingRect()
-
-            const diffX = e.clientX - this.dragConfig.lastPosX
-            const diffY = e.clientY - this.dragConfig.lastPosY
-            this.dragConfig.lastPosX = e.clientX
-            this.dragConfig.lastPosY = e.clientY
-            // 更改fabricCanvas的transform
-            const vpt = canvas.viewportTransform!
-            vpt[4] += diffX
-            vpt[5] += diffY
-            canvas.renderAll() // 重新渲染
-        }
-    }
-
-    /**
-     * 鼠标在画布中抬起的事件
-     * @param options
-     */
-    private handleMouseUp(options: any): void {
-        if (this.getIsMoveIng) {
-            this.dragConfig.isMouseDownIng = false
-        }
-    }
-
-    /**
-     * 修改zoom值
-     * @param diff 相差值为正数或负数
-     */
-    private handleZoom(diff: number) {
-        if (diff !== 0) {
-            this.zoomConfig.zoom = Math.round(((this.zoomConfig.zoom + diff) * 100)) / 100
-        }
-    }
-}
 </script>
 
 <style lang="scss">
-@import '../../../../styles/index';
+    @import '../../../../styles/index';
 
-$prefixCls: 'pmw-photo-gallery-landscaping-pictures';
-.#{$prefixCls} {
-    display: flex;
-    height: 100%;
-    &-options {
-        flex: 0 0 200px;
-    }
-    &-fabric {
-        flex: 1;
-        margin: 10px;
-        position: relative;
-        canvas {
-            width: 100%;
-            height: 100%;
+    $prefixCls: 'pmw-photo-gallery-landscaping-pictures';
+    .#{$prefixCls} {
+        display: flex;
+        height: 100%;
+        &-options {
+            flex: 0 0 200px;
+        }
+        &-fabric {
+            flex: 1;
+            margin: 10px;
+            position: relative;
+            canvas {
+                width: 100%;
+                height: 100%;
+            }
+        }
+        &-zoom-wrap {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            right: 0;
+            top: 0;
+            width: 500px;
+            height: 45px;
+            background: rgba(0, 0, 0, 0.6);
+            box-shadow: 0 0 5px #fff;
+            z-index: 1;
+            padding: 10px 15px;
+            color: #fff;
         }
     }
-    &-zoom-wrap {
-        position: absolute;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        right: 0;
-        top: 0;
-        width: 500px;
-        height: 45px;
-        background: rgba(0, 0, 0, 0.6);
-        box-shadow: 0 0 5px #fff;
-        z-index: 1;
-        padding: 10px 15px;
-        color: #fff;
-    }
-}
 </style>

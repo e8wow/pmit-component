@@ -285,15 +285,18 @@
 
                         this.canvas!.add(background) // 将背景加入画布中
                         this.canvas!.centerObject(background)
-                        this.canvas!.clipTo = ctx => {
-                            const bgRect = background.getBoundingRect(false, true)
-                            ctx.rect(
-                                bgRect.left!,
-                                bgRect.top!,
-                                bgRect.width!,
-                                bgRect.height!
-                            )
-                        }
+                        // this.canvas!.clipTo = ctx => {
+                        //     const bgRect = background.getBoundingRect(false, true)
+                        //     ctx.rect(
+                        //         bgRect.left!,
+                        //         bgRect.top!,
+                        //         bgRect.width!,
+                        //         bgRect.height!
+                        //     )
+                        // }
+
+                        // 调用一次边界检测，否则缩放时添加进去的元素会集中放到背景图片里面
+                        this.checkBoundary()
                         resolve()
                     }
                 )
@@ -336,15 +339,15 @@
                 // 执行体,代码都写这,
                 if (canvas && this.getBackground) {
                     canvas.zoomToPoint(point, zoom)
-                    canvas!.clipTo = ctx => {
-                        const bgRect = this.getBackground.getBoundingRect(false, true) // 获取背景图片的矩阵
-                        ctx.rect(
-                            bgRect.left!,
-                            bgRect.top!,
-                            bgRect.width!,
-                            bgRect.height!
-                        )
-                    }
+                    // canvas!.clipTo = ctx => {
+                    //     const bgRect = this.getBackground.getBoundingRect(false, true) // 获取背景图片的矩阵
+                    //     ctx.rect(
+                    //         bgRect.left!,
+                    //         bgRect.top!,
+                    //         bgRect.width!,
+                    //         bgRect.height!
+                    //     )
+                    // }
                     this.ob_dragConfig(this.dragConfig)
                     this.checkBoundary()
                 }

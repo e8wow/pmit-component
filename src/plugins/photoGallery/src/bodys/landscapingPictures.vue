@@ -442,7 +442,7 @@
             options.e.preventDefault()
             options.e.stopPropagation()
             this.zoomConfig.point = new Fabric.fabric.Point(options.e.offsetX, options.e.offsetY)
-            this.zoomConfig.zoom += delta / 200
+            this.zoomConfig.zoom -= delta / 200
         }
 
         /**

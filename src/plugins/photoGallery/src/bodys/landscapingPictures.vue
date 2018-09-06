@@ -16,9 +16,9 @@
 </template>
 
 <script lang="ts">
-    import Fabric from 'fabric'
-    import {Canvas, Image, Point, Object as FabricObject} from 'fabric/fabric-impl'
-    import {Component, Prop, Vue, Watch} from 'vue-property-decorator'
+    import Fabric                                           from 'fabric'
+    import { Canvas, Image, Point, Object as FabricObject } from 'fabric/fabric-impl'
+    import { Component, Prop, Vue, Watch }                  from 'vue-property-decorator'
 
     // 拖动配置接口
     interface DragConfig {
@@ -39,7 +39,7 @@
     @Component({})
     export default class LandscapingPictures extends Vue {
         // css prefix
-        @Prop({type: String, default: 'pmw-photo-gallery-landscaping-pictures'})
+        @Prop({ type: String, default: 'pmw-photo-gallery-landscaping-pictures' })
         private readonly prefixCls?: string
 
         // TODO 默认图片等组件完成后需要去除default属性值
@@ -214,6 +214,17 @@
                 this.getBackground.top = 0
                 vpt[5] = minTopValue
             }
+
+            // 如果背景图宽度小于画布宽度则让背景图处于中间的位置
+            if (bgRect.width <= this.width) {
+                this.getBackground.left = 0
+                vpt[4] = this.width / 2 - bgRect.width / 2
+            }
+            // 如果背景图高度小于画布高度则让背景图处于中间的位置
+            if (bgRect.height <= this.height) {
+                this.getBackground.top = 0
+                vpt[5] = this.height / 2 - bgRect.height / 2
+            }
         }
 
         /**
@@ -255,7 +266,7 @@
                     (background: Image) => {
                         this.$set(this.contents, 0, background)
                         // 处理图片的缩放，使其不超出编辑区域
-                        const {width = 0, height = 0} = background
+                        const { width = 0, height = 0 } = background
                         const radio = width / height // 获取图片宽高比例
                         let scale = 1 // 背景图片缩放比例
                         if (radio > 1 && width > this.width) {
@@ -293,7 +304,7 @@
          * 拖动背景的观察者
          * @param dragConfig:DragConfig
          */
-        @Watch('dragConfig', {deep: true})
+        @Watch('dragConfig', { deep: true })
         private ob_dragConfig(dragConfig: DragConfig): void {
             // 设置鼠标样式
             if (dragConfig.isSpaceDownIng) { // TODO 此处以后可移出这里，为isSpaceDownIng和isMouseDownIng增加另外的监听回调
@@ -313,8 +324,8 @@
          * min 缩放最小
          * @param zoomConfig:{zoom,max,min} zoomConfig
          */
-        @Watch('zoomConfig', {deep: true})
-        private ob_zoom({zoom, max, min, point}: ZoomConfig): void {
+        @Watch('zoomConfig', { deep: true })
+        private ob_zoom({ zoom, max, min, point }: ZoomConfig): void {
             // 限制缩放最大值与最小值
             if (zoom > max) {
                 this.zoomConfig.zoom = max

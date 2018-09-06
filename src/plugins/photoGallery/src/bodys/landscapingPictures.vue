@@ -18,7 +18,8 @@
 <script lang="ts">
     import Fabric                                           from 'fabric'
     import { Canvas, Image, Point, Object as FabricObject } from 'fabric/fabric-impl'
-    import { Component, Prop, Vue, Watch }                  from 'vue-property-decorator'
+
+    import { Component, Prop, Vue, Watch } from 'vue-property-decorator'
 
     // 拖动配置接口
     interface DragConfig {
@@ -155,13 +156,24 @@
         }
 
         /**
+         * 删除元素
+         */
+        private removeObject(object: FabricObject): void {
+            this.canvas!.remove(object)
+        }
+
+        /**
          * 生成Base64图片
          * @returns {Promise<string>}
          */
         private async getBase64(): Promise<string> {
             if (this.canvas && this.getBackground) {
-                const currentZoom = this.zoomConfig.zoom // 当前的缩放比例
-                this.zoomConfig.zoom = 1 // 将当前的缩放比例恢复默认值
+                // 当前的缩放比例
+                const currentZoom = this.zoomConfig.zoom
+                // 将当前的缩放比例恢复默认值
+                this.zoomConfig.zoom = 1
+
+                // 开始生成图片
                 let result = '' // 用来存放Base64图片
                 await this.$nextTick(() => {
                     const backgroundRect = this.getBackground!.getBoundingRect(false, true)
@@ -174,6 +186,8 @@
                     })
                     this.canvas!.renderAll()
                 })
+
+                // 恢复缩放比例
                 this.zoomConfig.zoom = currentZoom
                 return result
             } else {
@@ -258,6 +272,20 @@
             }
         }
 
+        /**
+         * 恢复裁剪区域
+         */
+        private resumeClip() {
+            this.canvas!.clipTo = ctx => {
+                ctx.rect(
+                    0,
+                    0,
+                    this.width!,
+                    this.height!
+                )
+            }
+        }
+
         appendText() {
             this.appendObject(new Fabric.fabric.Text('测试'))
         }
@@ -307,7 +335,7 @@
 
                         this.canvas!.add(background) // 将背景加入画布中
                         this.canvas!.centerObject(background)
-                        this.clip()
+                        // this.clip()
 
                         // 调用一次边界检测，否则缩放时添加进去的元素会集中放到背景图片里面
                         this.checkBoundary()
@@ -326,10 +354,24 @@
             // 设置鼠标样式
             if (dragConfig.isSpaceDownIng) { // TODO 此处以后可移出这里，为isSpaceDownIng和isMouseDownIng增加另外的监听回调
                 this.setCursor('-webkit-grab')
+                this.contents.forEach(item => {
+                    item.hasControls = false // 将缩放旋转等控制点取消
+                    item.hasBorders = false // 去掉边框
+                    item.selectable = false // 不能选中
+                })
                 if (dragConfig.isMouseDownIng) {
                     this.setCursor('-webkit-grabbing')
                 }
             } else {
+                this.contents.forEach(item => {
+                    item.hasControls = true // 将缩放旋转等控制点取消
+                    item.hasBorders = true // 去掉边框
+                    item.selectable = true // 不能选中
+                })
+                this.getBackground.hasControls = false // 将缩放旋转等控制点取消
+                this.getBackground.hasBorders = false // 去掉边框
+                this.getBackground.selectable = false // 不能选中
+                this.getBackground.hoverCursor = 'default' // 鼠标移入样式改为默认
                 this.setCursor('default')
             }
         }
@@ -353,7 +395,7 @@
                 // 执行体,代码都写这,
                 if (canvas && this.getBackground) {
                     canvas.zoomToPoint(point, zoom)
-                    this.clip()
+                    // this.clip()
                     this.ob_dragConfig(this.dragConfig)
                     this.checkBoundary()
                 }

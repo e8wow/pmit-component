@@ -667,9 +667,9 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.0.tgz#50c1e2260ac0ed9439a181de3725a0168d59c48a"
 
-"@types/fabric@^1.5.38":
-  version "1.5.40"
-  resolved "https://registry.yarnpkg.com/@types/fabric/-/fabric-1.5.40.tgz#6faab501e89c69fedb2df5c9641bce6d1f9d7312"
+"@types/fabric@^1.5.41":
+  version "1.5.41"
+  resolved "http://registry.npm.taobao.org/@types/fabric/download/@types/fabric-1.5.41.tgz#b0e610583293e6b4414179e62b88c602a5a5a5df"
 
 "@types/jest@^22.0.1":
   version "22.2.3"
@@ -1242,8 +1242,8 @@ async-limiter@~1.0.0:
   resolved "https://registry.yarnpkg.com/async-limiter/-/async-limiter-1.0.0.tgz#78faed8c3d074ab81f22b4e985d79e8738f720f8"
 
 async-validator@^1.8.2:
-  version "1.8.4"
-  resolved "https://registry.yarnpkg.com/async-validator/-/async-validator-1.8.4.tgz#74c3a324161e6207f5c56cc1c66725b5c597e506"
+  version "1.8.5"
+  resolved "http://registry.npm.taobao.org/async-validator/download/async-validator-1.8.5.tgz#dc3e08ec1fd0dddb67e60842f02c0cd1cec6d7f0"
   dependencies:
     babel-runtime "6.x"
 
@@ -1519,7 +1519,7 @@ base@^0.11.1:
 
 batch-processor@^1.0.0:
   version "1.0.0"
-  resolved "https://registry.yarnpkg.com/batch-processor/-/batch-processor-1.0.0.tgz#75c95c32b748e0850d10c2b168f6bdbe9891ace8"
+  resolved "http://registry.npm.taobao.org/batch-processor/download/batch-processor-1.0.0.tgz#75c95c32b748e0850d10c2b168f6bdbe9891ace8"
 
 batch@0.6.1:
   version "0.6.1"
@@ -2764,7 +2764,7 @@ electron-to-chromium@^1.3.47:
 
 element-resize-detector@^1.1.14:
   version "1.1.14"
-  resolved "https://registry.yarnpkg.com/element-resize-detector/-/element-resize-detector-1.1.14.tgz#af064a0a618a820ad570a95c5eec5b77be0128c1"
+  resolved "http://registry.npm.taobao.org/element-resize-detector/download/element-resize-detector-1.1.14.tgz#af064a0a618a820ad570a95c5eec5b77be0128c1"
   dependencies:
     batch-processor "^1.0.0"
 
@@ -3123,9 +3123,9 @@ extsprintf@^1.2.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/extsprintf/-/extsprintf-1.4.0.tgz#e2689f8f356fad62cca65a3a91c5df5f9551692f"
 
-fabric@^2.3.3:
-  version "2.3.4"
-  resolved "https://registry.yarnpkg.com/fabric/-/fabric-2.3.4.tgz#fd09aa3f77a4c146dd710b97ee953d9ea191239f"
+fabric@^2.3.6:
+  version "2.3.6"
+  resolved "http://registry.npm.taobao.org/fabric/download/fabric-2.3.6.tgz#2bab3befdc22c8b9ea960437442f771b1587687d"
   optionalDependencies:
     canvas "1.6.x"
     jsdom "9.x.x"
@@ -4267,9 +4267,9 @@ istanbul-reports@^1.3.0:
   dependencies:
     handlebars "^4.0.3"
 
-iview@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/iview/-/iview-3.0.0.tgz#1adc36a1ff7665d34316144b27f81c227b599475"
+iview@^3.1.0:
+  version "3.1.0"
+  resolved "http://registry.npm.taobao.org/iview/download/iview-3.1.0.tgz#b11e62136a1f215f4957961d79104df657a314a0"
   dependencies:
     async-validator "^1.8.2"
     deepmerge "^2.1.0"
@@ -4584,7 +4584,7 @@ js-beautify@^1.6.12, js-beautify@^1.6.14:
 
 js-calendar@^1.2.3:
   version "1.2.3"
-  resolved "https://registry.yarnpkg.com/js-calendar/-/js-calendar-1.2.3.tgz#a583b0644b4e695ba394f344d103dbcc7a7a7d3e"
+  resolved "http://registry.npm.taobao.org/js-calendar/download/js-calendar-1.2.3.tgz#a583b0644b4e695ba394f344d103dbcc7a7a7d3e"
 
 js-message@1.0.5:
   version "1.0.5"
@@ -4916,7 +4916,7 @@ lodash.tail@^4.1.1:
 
 lodash.throttle@^4.1.1:
   version "4.1.1"
-  resolved "https://registry.yarnpkg.com/lodash.throttle/-/lodash.throttle-4.1.1.tgz#c23e91b710242ac70c37f1e1cda9274cc39bf2f4"
+  resolved "http://registry.npm.taobao.org/lodash.throttle/download/lodash.throttle-4.1.1.tgz#c23e91b710242ac70c37f1e1cda9274cc39bf2f4"
 
 lodash.transform@^4.6.0:
   version "4.6.0"
@@ -5911,8 +5911,8 @@ pn@^1.1.0:
   resolved "https://registry.yarnpkg.com/pn/-/pn-1.1.0.tgz#e2f4cef0e219f463c179ab37463e4e1ecdccbafb"
 
 popper.js@^1.14.1:
-  version "1.14.3"
-  resolved "https://registry.yarnpkg.com/popper.js/-/popper.js-1.14.3.tgz#1438f98d046acf7b4d78cd502bf418ac64d4f095"
+  version "1.14.4"
+  resolved "http://registry.npm.taobao.org/popper.js/download/popper.js-1.14.4.tgz#8eec1d8ff02a5a3a152dd43414a15c7b79fd69b6"
 
 portfinder@^1.0.13, portfinder@^1.0.9:
   version "1.0.13"
@@ -7365,7 +7365,7 @@ timers-browserify@^2.0.4:
 
 tinycolor2@^1.4.1:
   version "1.4.1"
-  resolved "https://registry.yarnpkg.com/tinycolor2/-/tinycolor2-1.4.1.tgz#f4fad333447bc0b07d4dc8e9209d8f39a8ac77e8"
+  resolved "http://registry.npm.taobao.org/tinycolor2/download/tinycolor2-1.4.1.tgz#f4fad333447bc0b07d4dc8e9209d8f39a8ac77e8"
 
 tmpl@1.0.x:
   version "1.0.4"
@@ -7757,8 +7757,8 @@ uuid@^3.1.0:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.3.2.tgz#1b4af4955eb3077c501c23872fc6513811587131"
 
 v-click-outside-x@^3.0.0:
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/v-click-outside-x/-/v-click-outside-x-3.0.3.tgz#824c2551f9451e1c1cc62cc525c6084185d1fbf4"
+  version "3.2.2"
+  resolved "http://registry.npm.taobao.org/v-click-outside-x/download/v-click-outside-x-3.2.2.tgz#7e02cd18836890ffe73981f3aa6e96a0d84286f0"
 
 validate-npm-package-license@^3.0.1:
   version "3.0.3"

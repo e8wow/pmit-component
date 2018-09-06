@@ -1,7 +1,7 @@
 <template>
     <div :class="prefixCls">
         <div :class="`${prefixCls}-options`">
-
+            <span @click="appendText">文字</span>
         </div>
         <div :class="`${prefixCls}-fabric`"
              class="transparent-bg-wrap">
@@ -64,7 +64,7 @@
         }
         private zoomConfig: ZoomConfig = {
             zoom: 1,
-            max: 2,
+            max: 4,
             min: 0.9,
             point: new Fabric.fabric.Point(0, 0)
         }
@@ -349,6 +349,10 @@
                     this.checkBoundary()
                 }
             }
+        }
+
+        appendText() {
+            this.appendObject(new Fabric.fabric.Text('测试'))
         }
 
         /**

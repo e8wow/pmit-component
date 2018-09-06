@@ -53,7 +53,6 @@
         private width: Number = 0 // canvas宽度
         private height: Number = 0 // canvas高度
 
-        private background?: Image // fabric 背景图片 实例
         private contents: FabricObject[] = [] // 内容
         private centerPoint?: Point // 中心点
         private dragConfig: DragConfig = {
@@ -64,7 +63,7 @@
         }
         private zoomConfig: ZoomConfig = {
             zoom: 1,
-            max: 4,
+            max: 10,
             min: 0.9,
             point: new Fabric.fabric.Point(0, 0)
         }
@@ -115,6 +114,7 @@
             await this.ob_background()
             // 注册监听事件
             this.registerEventListener()
+            window.test = this
         }
 
         private beforeDestroy(): void {
@@ -225,6 +225,9 @@
                 this.getBackground.top = 0
                 vpt[5] = this.height / 2 - bgRect.height / 2
             }
+
+            // 修复在图片放大超出画布范围时会消失的问题，也修复缩放后选不中画布内的元素，与实际看到的位置有偏移
+            this.contents.forEach(item => item.setCoords())
         }
 
         /**
@@ -253,6 +256,10 @@
                     bgRect.height!
                 )
             }
+        }
+
+        appendText() {
+            this.appendObject(new Fabric.fabric.Text('测试'))
         }
 
         /**
@@ -351,10 +358,6 @@
                     this.checkBoundary()
                 }
             }
-        }
-
-        appendText() {
-            this.appendObject(new Fabric.fabric.Text('测试'))
         }
 
         /**

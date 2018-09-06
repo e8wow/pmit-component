@@ -241,6 +241,21 @@
         }
 
         /**
+         * 将画布裁剪成只剩下背景图内的内容
+         */
+        private clip() {
+            this.canvas!.clipTo = ctx => {
+                const bgRect = this.getBackground.getBoundingRect(false, true) // 获取背景图片的矩阵
+                ctx.rect(
+                    bgRect.left!,
+                    bgRect.top!,
+                    bgRect.width!,
+                    bgRect.height!
+                )
+            }
+        }
+
+        /**
          * 监听背景图片的变化。裁剪后、重新选择都会触发
          */
         @Watch('backgroundImage')
@@ -285,15 +300,7 @@
 
                         this.canvas!.add(background) // 将背景加入画布中
                         this.canvas!.centerObject(background)
-                        // this.canvas!.clipTo = ctx => {
-                        //     const bgRect = background.getBoundingRect(false, true)
-                        //     ctx.rect(
-                        //         bgRect.left!,
-                        //         bgRect.top!,
-                        //         bgRect.width!,
-                        //         bgRect.height!
-                        //     )
-                        // }
+                        this.clip()
 
                         // 调用一次边界检测，否则缩放时添加进去的元素会集中放到背景图片里面
                         this.checkBoundary()
@@ -339,15 +346,7 @@
                 // 执行体,代码都写这,
                 if (canvas && this.getBackground) {
                     canvas.zoomToPoint(point, zoom)
-                    // canvas!.clipTo = ctx => {
-                    //     const bgRect = this.getBackground.getBoundingRect(false, true) // 获取背景图片的矩阵
-                    //     ctx.rect(
-                    //         bgRect.left!,
-                    //         bgRect.top!,
-                    //         bgRect.width!,
-                    //         bgRect.height!
-                    //     )
-                    // }
+                    this.clip()
                     this.ob_dragConfig(this.dragConfig)
                     this.checkBoundary()
                 }

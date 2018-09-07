@@ -48,13 +48,18 @@
             type: String,
             default: require('../../../../assets/images/test3.jpg')
         })
-        private readonly backgroundImage?: string
+        private readonly backgroundUrl?: string
 
+        // canvas属性
         private canvas?: Canvas // fabric canvas 实例
         private width: Number = 0 // canvas宽度
         private height: Number = 0 // canvas高度
 
+        // 内容属性
+        private background: Image // fabric 图片背景实例
         private contents: FabricObject[] = [] // 内容
+
+        // 配置属性
         private centerPoint?: Point // 中心点
         private dragConfig: DragConfig = {
             isSpaceDownIng: false,
@@ -70,17 +75,10 @@
         }
 
         /**
-         * 获取背景
-         */
-        private get getBackground(): Image {
-            return this.contents[0] as Image
-        }
-
-        /**
          * 获取背景图片的宽高比例
          */
         private get getBackgroundRatio(): number {
-            const background: Image = this.getBackground as Image
+            const background: Image = this.background as Image
             if (background) {
                 return background!.width / background!.height
             } else {
@@ -144,15 +142,27 @@
         }
 
         /**
+         * 重新将fabric中的对象挂载到vue中
+         */
+        private refreshContentObjects(): void {
+            this.contents = this.canvas!.getObjects()
+            this.background = this.contents[0] as Image
+        }
+
+        /**
          * 添加元素
          * object: FabricObject 添加的对象
          */
         private appendObject(object: FabricObject): FabricObject | void {
             if (this.canvas) {
-                this.contents.push(object)
                 this.canvas.add(object)
+                this.refreshContentObjects()
                 return object
             }
+        }
+
+        appendText() {
+            this.appendObject(new Fabric.fabric.Text('测试'))
         }
 
         /**
@@ -167,7 +177,7 @@
          * @returns {Promise<string>}
          */
         private async getBase64(): Promise<string> {
-            if (this.canvas && this.getBackground) {
+            if (this.canvas && this.background) {
                 // 当前的缩放比例
                 const currentZoom = this.zoomConfig.zoom
                 // 将当前的缩放比例恢复默认值
@@ -176,8 +186,9 @@
                 // 开始生成图片
                 let result = '' // 用来存放Base64图片
                 await this.$nextTick(() => {
-                    const backgroundRect = this.getBackground!.getBoundingRect(false, true)
+                    const backgroundRect = this.background!.getBoundingRect(false, true)
                     // 将裁剪后返回的Base64字符串赋值给result变量
+                    // TODO 需要改成成调整大小设置的宽高缩放比例
                     result = this.canvas!.toDataURL({
                         left: backgroundRect.left,
                         top: backgroundRect.top,
@@ -200,7 +211,7 @@
          */
         private checkBoundary() {
             // 获取背景的矩阵
-            const bgRect = this.getBackground.getBoundingRect(false, true)
+            const bgRect = this.background.getBoundingRect(false, true)
             const vpt = this.canvas.viewportTransform!
 
             // 获取边界值
@@ -213,30 +224,30 @@
 
             // X轴边界碰撞检测
             if (bgRect.left >= maxLeftValue) {
-                this.getBackground.left = 0
+                this.background.left = 0
                 vpt[4] = maxLeftValue
             } else if (bgRect.left < minLeftValue) {
-                this.getBackground.left = 0
+                this.background.left = 0
                 vpt[4] = minLeftValue
             }
 
             // Y轴边界碰撞检测
             if (bgRect.top >= maxTopValue) {
-                this.getBackground.top = 0
+                this.background.top = 0
                 vpt[5] = maxTopValue
             } else if (bgRect.top < minTopValue) {
-                this.getBackground.top = 0
+                this.background.top = 0
                 vpt[5] = minTopValue
             }
 
             // 如果背景图宽度小于画布宽度则让背景图处于中间的位置
             if (bgRect.width <= this.width) {
-                this.getBackground.left = 0
+                this.background.left = 0
                 vpt[4] = this.width / 2 - bgRect.width / 2
             }
             // 如果背景图高度小于画布高度则让背景图处于中间的位置
             if (bgRect.height <= this.height) {
-                this.getBackground.top = 0
+                this.background.top = 0
                 vpt[5] = this.height / 2 - bgRect.height / 2
             }
 
@@ -262,7 +273,7 @@
          */
         private clip() {
             this.canvas!.clipTo = ctx => {
-                const bgRect = this.getBackground.getBoundingRect(false, true) // 获取背景图片的矩阵
+                const bgRect = this.background.getBoundingRect(false, true) // 获取背景图片的矩阵
                 ctx.rect(
                     bgRect.left!,
                     bgRect.top!,
@@ -286,14 +297,10 @@
             }
         }
 
-        appendText() {
-            this.appendObject(new Fabric.fabric.Text('测试'))
-        }
-
         /**
          * 监听背景图片的变化。裁剪后、重新选择都会触发
          */
-        @Watch('backgroundImage')
+        @Watch('backgroundUrl')
         private async ob_background(): void {
             await new Promise((resolve, reject) => {
                 if (!this.canvas) {
@@ -303,7 +310,7 @@
                     })
                     return
                 }
-                if (!this.backgroundImage) {
+                if (!this.backgroundUrl) {
                     reject({
                         code: 101,
                         msg: '请传入正确的图片路径地址.'
@@ -312,7 +319,7 @@
                 }
                 // 引入背景图片
                 Fabric.fabric.Image.fromURL(
-                    this.backgroundImage,
+                    this.backgroundUrl,
                     (background: Image) => {
                         this.$set(this.contents, 0, background)
                         // 处理图片的缩放，使其不超出编辑区域
@@ -336,7 +343,7 @@
                         this.canvas!.add(background) // 将背景加入画布中
                         this.canvas!.centerObject(background)
                         // this.clip()
-
+                        this.refreshContentObjects()
                         // 调用一次边界检测，否则缩放时添加进去的元素会集中放到背景图片里面
                         this.checkBoundary()
                         resolve()
@@ -368,10 +375,10 @@
                     item.hasBorders = true // 去掉边框
                     item.selectable = true // 不能选中
                 })
-                this.getBackground.hasControls = false // 将缩放旋转等控制点取消
-                this.getBackground.hasBorders = false // 去掉边框
-                this.getBackground.selectable = false // 不能选中
-                this.getBackground.hoverCursor = 'default' // 鼠标移入样式改为默认
+                this.background.hasControls = false // 将缩放旋转等控制点取消
+                this.background.hasBorders = false // 去掉边框
+                this.background.selectable = false // 不能选中
+                this.background.hoverCursor = 'default' // 鼠标移入样式改为默认
                 this.setCursor('default')
             }
         }
@@ -393,7 +400,7 @@
             } else {
                 const canvas = this.canvas
                 // 执行体,代码都写这,
-                if (canvas && this.getBackground) {
+                if (canvas && this.background) {
                     canvas.zoomToPoint(point, zoom)
                     // this.clip()
                     this.ob_dragConfig(this.dragConfig)
@@ -407,8 +414,8 @@
          * @param event
          */
         private handleKeyDown(event: KeyboardEvent): void {
-            if (event.key === ' ' && this.canvas && this.getBackground) {
-                if (this.canvas && this.getBackground) {
+            if (event.key === ' ' && this.canvas && this.background) {
+                if (this.canvas && this.background) {
                     this.dragConfig.isSpaceDownIng = true
                     this.canvas.selection = false
                     event.preventDefault()
@@ -422,7 +429,7 @@
          */
         private handleKeyUp(event: KeyboardEvent): void {
             if (event.key === ' ') {
-                if (this.canvas && this.getBackground) {
+                if (this.canvas && this.background) {
                     this.dragConfig.isSpaceDownIng = false
                     this.dragConfig.isMouseDownIng = false //
                     this.canvas.selection = true
@@ -454,7 +461,7 @@
         private handleMouseMove(options: any): void {
             const e: MouseEvent = options.e
             const canvas = this.canvas
-            if (this.getIsMoveIng && canvas && this.getBackground) {
+            if (this.getIsMoveIng && canvas && this.background) {
                 // 获取canvas的transform对象
                 const vpt = canvas.viewportTransform!
                 // 计算与上一次鼠标坐标相差值
